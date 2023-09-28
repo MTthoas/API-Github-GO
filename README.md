@@ -42,13 +42,12 @@ OU
     go mod download
 ```
 
-## Utilisation
-
-Pour démarrer le serveur, exécutez :
-
 ```bash
     go run main.go
 ```
+
+## Utilisation
+
 
 Visitez http://localhost:3000/download/:username pour télécharger l'archive de dépôts pour un utilisateur GitHub donné.
 
