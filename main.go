@@ -18,6 +18,14 @@ func main() {
 	functions.SetLog()
 	log.Info("Démarrage du programme")
 
+		// Créez les dossiers si ils n'existent pas
+		if err := os.MkdirAll("./repos", os.ModePerm); err != nil {
+			log.Fatal("Erreur lors de la création du dossier /repos :", err)
+		}
+		if err := os.MkdirAll("./archives", os.ModePerm); err != nil {
+			log.Fatal("Erreur lors de la création du dossier /archives :", err)
+		}
+
 	app := fiber.New()
 
 	// Charger le fichier .env
