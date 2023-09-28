@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"strings"
 	"sync"
+	"bytes"
 )
 
 
@@ -60,7 +61,6 @@ func FetchRepos(user string, repos []model.Repository) {
 }
 
 func CloneRepository(repoURL, targetDir string) error {
-
 	// Vérifier si le dossier cible existe déjà
 	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
 		// Le dossier n'existe pas, alors nous allons le créer
@@ -69,10 +69,19 @@ func CloneRepository(repoURL, targetDir string) error {
 		}
 	}
 
+	var stderr bytes.Buffer
 	cmd := exec.Command("git", "clone", repoURL, targetDir)
 	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+
+	// Afficher la sortie d'erreur sauf l'avertissement sur le dépôt vide
+	errOutput := stderr.String()
+	if !strings.Contains(errOutput, "warning: You appear to have cloned an empty repository") {
+		fmt.Fprint(os.Stderr, errOutput)
+	}
+
+	return err
 }
 
 func GitPullAndFetch(repoDir string) error {

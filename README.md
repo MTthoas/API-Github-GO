@@ -19,14 +19,7 @@ Serveur Fiber pour la distribution d'archives.
     cd API-Github-GO
 ```
 
-
-2- Installez les dépendances nécessaires.
-
-```bash
-    go mod download
-```
-
-3- Créez un fichier .env dans le répertoire racine du projet et ajoutez-y vos identifiants GitHub :
+2- Créez un fichier .env dans le répertoire racine du projet et ajoutez-y vos identifiants GitHub :
 
 
 ```bash
@@ -34,6 +27,20 @@ Serveur Fiber pour la distribution d'archives.
     GITHUB_TOKEN=votre_token_github
 ```
 **REMARQUE** : Assurez-vous de ne jamais exposer votre token GitHub. Gardez-le secret.
+
+
+3- Installez les dépendances nécessaires OU Automatiser le déploiement via Docker.
+
+Docker :
+```bash
+    docker-compose up --build
+```
+
+OU 
+
+```bash
+    go mod download
+```
 
 ## Utilisation
 
