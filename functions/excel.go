@@ -8,6 +8,9 @@ import (
 	"strconv"
 	"encoding/csv"
 	"github.com/gofiber/fiber/v2/log"
+	"archive/zip"
+	"io"
+	"strings"
 )
 
 
@@ -28,16 +31,33 @@ func RemoveContents(dir string) error {
 			if err := os.RemoveAll(entryPath); err != nil {
 				return err
 			}
-		} else {
-			// Si c'est un fichier, le supprimer
-			if err := os.Remove(entryPath); err != nil {
-				return err
-			}
-		}
+		} 
 	}
 
 	return nil
 }
+
+func ManageCSV(csvFileName string, repos []model.Repository) {
+    // Supprimer le fichier CSV s'il existe
+    if _, err := os.Stat(csvFileName); !os.IsNotExist(err) {
+        os.Remove(csvFileName)
+        log.Info("Fichier CSV existant supprimé")
+    }
+
+    // Créer un nouveau fichier CSV
+    csvFile, err := os.Create(csvFileName)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer csvFile.Close()
+
+    writer := csv.NewWriter(csvFile)
+    defer writer.Flush()
+
+    ExcelWrite(repos, writer)
+    log.Info("Fichier CSV créé")
+}
+
 
 func SortByDate(repos []model.Repository) []model.Repository {
 	sort.Slice(repos, func(i, j int) bool {
@@ -89,3 +109,62 @@ func ExcelWrite(repos []model.Repository , writer *csv.Writer) {
 
 	log.Info("Ecriture des données terminée")
 }
+
+func ArchiveRepositories(sourceDir string, destinationZip string) error {
+	zipFile, err := os.Create(destinationZip)
+	if err != nil {
+		return err
+	}
+	defer zipFile.Close()
+
+	zipWriter := zip.NewWriter(zipFile)
+	defer zipWriter.Close()
+
+
+	// Walk est une fonction récursive qui parcourt le dossier sourceDir et ses sous-dossiers
+
+	return filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Create header for the file or directory
+		header, err := zip.FileInfoHeader(info)
+		if err != nil {
+			return err
+		}
+		header.Name = filepath.Join(filepath.Base(sourceDir), strings.TrimPrefix(path, sourceDir))
+
+		if info.IsDir() {
+			_, err = zipWriter.CreateHeader(header)
+
+			if err != nil {
+				return err
+			}
+
+		} else {
+
+			// L'utilisation de CreateHeader permet de créer un fichier avec les bons droits
+			// ( par exemple, les fichiers exécutables seront créés avec les droits d'exécution )
+
+			writer, err := zipWriter.CreateHeader(header)
+			if err != nil {
+				return err
+			}
+			fileToArchive, err := os.Open(path)
+			if err != nil {
+				return err
+			}
+			defer fileToArchive.Close()
+
+			_, err = io.Copy(writer, fileToArchive)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+
+

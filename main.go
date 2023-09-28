@@ -10,12 +10,15 @@ import (
 	"github.com/gofiber/fiber/v2/log"
 	"github.com/joho/godotenv"
 	"encoding/csv"
+	"github.com/gofiber/fiber/v2"
 )
 
 func main() {
 
 	functions.SetLog()
 	log.Info("Démarrage du programme")
+
+	app := fiber.New()
 
 	// Charger le fichier .env
 	err := godotenv.Load()
@@ -54,7 +57,7 @@ func main() {
 
 	repos = functions.SortByDate(repos)
 
-	csvFileName := "repositories.csv"
+	csvFileName := "./repos/repositories.csv"
 
 	// Supprimer le fichier CSV s'il existe
 	if _, err := os.Stat(csvFileName); !os.IsNotExist(err) {
@@ -72,7 +75,7 @@ func main() {
 	writer := csv.NewWriter(csvFile)
 	defer writer.Flush()
 
-	functions.ExcelWrite(repos, writer)
+	functions.ManageCSV(csvFileName, repos)
 
 	log.Info("Fichier CSV créé")
 
@@ -80,4 +83,23 @@ func main() {
 
 	log.Info("Récupération des repos terminée")
 
+	functions.ArchiveRepositories("./repos", "./archives/"+user+".zip")
+
+	app.Get("/download/:username", func(c *fiber.Ctx) error {
+		username := c.Params("username")
+		filePath := fmt.Sprintf("./archives/%s.zip", username)
+	
+		if _, err := os.Stat(filePath); os.IsNotExist(err) {
+			return c.Status(404).SendString("Archive not found")
+		}
+	
+		return c.SendFile(filePath)
+	})
+	
+
+
+	log.Fatal(app.Listen(":3000"))
+
 }
+
+
