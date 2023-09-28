@@ -5,28 +5,31 @@ import (
 	"fmt"
 	"os"
 
+	"encoding/csv"
+	"log"
 	"github.com/MTthoas/API-Github-GO/functions"
 	"github.com/MTthoas/API-Github-GO/model"
-	"github.com/gofiber/fiber/v2/log"
-	"github.com/joho/godotenv"
-	"encoding/csv"
 	"github.com/gofiber/fiber/v2"
+	// "github.com/gofiber/fiber/v2/log"
+	"github.com/joho/godotenv"
 )
 
 func main() {
 
 	functions.SetLog()
-	log.Info("Démarrage du programme")
+	log.Println("Démarrage du programme")
 
-		// Créez les dossiers si ils n'existent pas
-		if err := os.MkdirAll("./repos", os.ModePerm); err != nil {
-			log.Fatal("Erreur lors de la création du dossier /repos :", err)
-		}
-		if err := os.MkdirAll("./archives", os.ModePerm); err != nil {
-			log.Fatal("Erreur lors de la création du dossier /archives :", err)
-		}
+	// Créez les dossiers si ils n'existent pas
+	if err := os.MkdirAll("./repos", os.ModePerm); err != nil {
+		log.Fatal("Erreur lors de la création du dossier /repos :", err)
+	}
+	if err := os.MkdirAll("./archives", os.ModePerm); err != nil {
+		log.Fatal("Erreur lors de la création du dossier /archives :", err)
+	}
 
 	app := fiber.New()
+
+	log.Println("Démarrage de l'application localhost:3000")
 
 	// Charger le fichier .env
 	err := godotenv.Load()
@@ -52,7 +55,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	} else {
-		log.Info("Récupération des données terminée")
+		log.Println("Récupération des données terminée")
 	}
 
 	var repos []model.Repository
@@ -60,7 +63,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	} else {
-		log.Info("Décodage des données terminé")
+		log.Println("Décodage des données terminé")
 	}
 
 	repos = functions.SortByDate(repos)
@@ -73,7 +76,7 @@ func main() {
 	// Supprimer le fichier CSV s'il existe
 	if _, err := os.Stat(csvFileName); !os.IsNotExist(err) {
 		os.Remove(csvFileName)
-		log.Info("Fichier CSV existant supprimé")
+		log.Println("Fichier CSV existant supprimé")
 	}
 
 	// Créer un nouveau fichier CSV
@@ -88,29 +91,30 @@ func main() {
 
 	functions.ManageCSV(csvFileName, repos)
 
-	log.Info("Fichier CSV créé")
+	log.Println("Fichier CSV créé")
 
 	functions.FetchRepos(user, repos)
 
-	log.Info("Récupération des repos terminée")
+	log.Println("Récupération des repos terminée")
 
 	functions.ArchiveRepositories("./repos", "./archives/"+user+".zip")
+
+	log.Println("Archivage des repos terminée")
 
 	app.Get("/download/:username", func(c *fiber.Ctx) error {
 		username := c.Params("username")
 		filePath := fmt.Sprintf("./archives/%s.zip", username)
-	
+
+		log.Println("Téléchargement de l'archive :", filePath)
+		log.Println(("Ip du client :"), c.IP())
+
 		if _, err := os.Stat(filePath); os.IsNotExist(err) {
 			return c.Status(404).SendString("Archive not found")
 		}
-	
+
 		return c.SendFile(filePath)
 	})
-	
-
 
 	log.Fatal(app.Listen(":3000"))
 
 }
-
-

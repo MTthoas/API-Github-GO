@@ -1,18 +1,18 @@
 package functions
 
 import (
+	"archive/zip"
+	"encoding/csv"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
-	"github.com/MTthoas/API-Github-GO/model"
 	"strconv"
-	"encoding/csv"
-	"github.com/gofiber/fiber/v2/log"
-	"archive/zip"
-	"io"
 	"strings"
+	"log"
+	"github.com/MTthoas/API-Github-GO/model"
+	// "github.com/gofiber/fiber/v2/log"
 )
-
 
 func RemoveContents(dir string) error {
 
@@ -31,33 +31,32 @@ func RemoveContents(dir string) error {
 			if err := os.RemoveAll(entryPath); err != nil {
 				return err
 			}
-		} 
+		}
 	}
 
 	return nil
 }
 
 func ManageCSV(csvFileName string, repos []model.Repository) {
-    // Supprimer le fichier CSV s'il existe
-    if _, err := os.Stat(csvFileName); !os.IsNotExist(err) {
-        os.Remove(csvFileName)
-        log.Info("Fichier CSV existant supprimé")
-    }
+	// Supprimer le fichier CSV s'il existe
+	if _, err := os.Stat(csvFileName); !os.IsNotExist(err) {
+		os.Remove(csvFileName)
+		// log.Println("Fichier CSV existant supprimé")
+	}
 
-    // Créer un nouveau fichier CSV
-    csvFile, err := os.Create(csvFileName)
-    if err != nil {
-        log.Fatal(err)
-    }
-    defer csvFile.Close()
+	// Créer un nouveau fichier CSV
+	csvFile, err := os.Create(csvFileName)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer csvFile.Close()
 
-    writer := csv.NewWriter(csvFile)
-    defer writer.Flush()
+	writer := csv.NewWriter(csvFile)
+	defer writer.Flush()
 
-    ExcelWrite(repos, writer)
-    log.Info("Fichier CSV créé")
+	ExcelWrite(repos, writer)
+	log.Println("Fichier CSV créé")
 }
-
 
 func SortByDate(repos []model.Repository) []model.Repository {
 	sort.Slice(repos, func(i, j int) bool {
@@ -66,7 +65,7 @@ func SortByDate(repos []model.Repository) []model.Repository {
 	return repos
 }
 
-func ExcelWrite(repos []model.Repository , writer *csv.Writer) {
+func ExcelWrite(repos []model.Repository, writer *csv.Writer) {
 
 	// Specification lié à la structure de mes Headers
 
@@ -76,11 +75,11 @@ func ExcelWrite(repos []model.Repository , writer *csv.Writer) {
 		"Watchers Count", "Open Issues Count", "Default Branch",
 		"Owner Login", "Owner Avatar URL", "Owner HTML URL",
 	}
-	
+
 	if err := writer.Write(headers); err != nil {
 		log.Fatalf("Failed to write headers to CSV: %s", err)
 	}
-	
+
 	// Ecriture dans le fichier CSV des données de chaque repository, lié à la structure de mes Headers et de mes données ( model/repository.go )
 
 	for _, repo := range repos {
@@ -103,12 +102,12 @@ func ExcelWrite(repos []model.Repository , writer *csv.Writer) {
 		}
 		if err := writer.Write(row); err != nil {
 			log.Fatalf("Failed to write repository data to CSV: %s", err)
-		}else{
-			log.Info("Ecriture des données en cours...", repo.Name,)  
+		} else {
+			log.Println("Ecriture des données en cours...", repo.Name)
 		}
 	}
 
-	log.Info("Ecriture des données terminée")
+	log.Println("Ecriture des données terminée")
 }
 
 func ArchiveRepositories(sourceDir string, destinationZip string) error {
@@ -121,12 +120,16 @@ func ArchiveRepositories(sourceDir string, destinationZip string) error {
 	zipWriter := zip.NewWriter(zipFile)
 	defer zipWriter.Close()
 
-
 	// Walk est une fonction récursive qui parcourt le dossier sourceDir et ses sous-dossiers
 
 	return filepath.Walk(sourceDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
+		}
+	
+		// Ignorer les liens symboliques
+		if info.Mode()&os.ModeSymlink != 0 {
+			return nil
 		}
 
 		// Create header for the file or directory
@@ -166,6 +169,3 @@ func ArchiveRepositories(sourceDir string, destinationZip string) error {
 		return nil
 	})
 }
-
-
-
