@@ -29,7 +29,7 @@ Serveur Fiber pour la distribution d'archives.
 **REMARQUE** : Assurez-vous de ne jamais exposer votre token GitHub. Gardez-le secret.
 
 
-### 3- Installez les dépendances nécessaires OU Automatiser le déploiement via Docker.
+### 3- Automatiser le déploiement via Docker OU Installez les dépendances nécessaires et lancer le serveur en local sur votre machine
 
 Docker :
 ```bash
