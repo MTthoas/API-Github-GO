@@ -46,7 +46,7 @@ func main() {
 	token := os.Getenv("GITHUB_TOKEN")
 
 	// Spécification à 100 pages piles
-	url := fmt.Sprintf("https://api.github.com/users/%s/repos?per_page=100", user)
+	url := fmt.Sprintf("https://api.github.com/users/%s/repos", user)
 	body, err := functions.GetMethod(url, token)
 
 	if err != nil {
@@ -64,6 +64,9 @@ func main() {
 	}
 
 	repos = functions.SortByDate(repos)
+	if len(repos) > 100 {
+		repos = repos[:100]
+	}
 
 	csvFileName := "./repos/repositories.csv"
 
