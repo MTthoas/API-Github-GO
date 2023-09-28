@@ -1,3 +1,14 @@
+# API-GITHUB-GO
+
+Un outil pour récupérer, traiter et télécharger les dépôts d'un utilisateur GitHub en utilisant l'API GitHub et le langage de programmation Go.
+
+## Fonctionnalités
+
+Récupération des dépôts d'un utilisateur GitHub.
+Trier les dépôts par date.
+Génération d'un fichier CSV contenant des informations sur les dépôts.
+Archivage des dépôts pour le téléchargement.
+Serveur Fiber pour la distribution d'archives.
 
 ## Configuration
 
