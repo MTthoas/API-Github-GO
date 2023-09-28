@@ -76,6 +76,9 @@ func CloneRepository(repoURL, targetDir string) error {
 }
 
 func GitPullAndFetch(repoDir string) error {
+
+	/* Déplacement, attribution à Currentbranch, pull & fetch heads*/
+
 	// Get the current branch
 	cmd := exec.Command("git", "rev-parse", "--abbrev-ref", "HEAD")
 	cmd.Dir = repoDir

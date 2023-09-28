@@ -81,7 +81,8 @@ func ExcelWrite(repos []model.Repository , writer *csv.Writer) {
 		log.Fatalf("Failed to write headers to CSV: %s", err)
 	}
 	
-	// Write the repositories' data to the CSV file
+	// Ecriture dans le fichier CSV des données de chaque repository, lié à la structure de mes Headers et de mes données ( model/repository.go )
+
 	for _, repo := range repos {
 		row := []string{
 			repo.Name,
